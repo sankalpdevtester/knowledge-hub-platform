@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
+@immutable
 class DiscussionModel extends Equatable {
   final String id;
   final String title;
@@ -12,15 +13,15 @@ class DiscussionModel extends Equatable {
   final Timestamp createdAt;
   final Timestamp updatedAt;
 
-  DiscussionModel({
-    @required this.id,
-    @required this.title,
-    @required this.description,
-    @required this.categoryId,
-    @required this.userId,
-    @required this.comments,
-    @required this.createdAt,
-    @required this.updatedAt,
+  const DiscussionModel({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.categoryId,
+    required this.userId,
+    required this.comments,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   factory DiscussionModel.fromJson(Map<String, dynamic> json) {
@@ -60,9 +61,4 @@ class DiscussionModel extends Equatable {
         createdAt,
         updatedAt,
       ];
-
-  @override
-  String toString() {
-    return 'DiscussionModel(id: $id, title: $title, description: $description, categoryId: $categoryId, userId: $userId, comments: $comments, createdAt: $createdAt, updatedAt: $updatedAt)';
-  }
 }
