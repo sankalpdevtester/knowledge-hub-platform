@@ -2,59 +2,65 @@ import 'package:comprehensive_knowledge_hub_platform/models/knowledge_model.dart
 import 'package:comprehensive_knowledge_hub_platform/services/knowledge_service.dart';
 
 class KnowledgeSearchUtils {
-  static Future<List<KnowledgeModel>> searchKnowledge(
-      String query, String category, String sortBy) async {
-    final knowledgeService = KnowledgeService();
-    final knowledgeList = await knowledgeService.getKnowledgeList();
+  static List<KnowledgeModel> searchKnowledge(
+    List<KnowledgeModel> knowledgeList,
+    String query, {
+    String sortBy = 'title',
+    bool sortByAscending = true,
+    String filterBy = 'all',
+  }) {
+    List<KnowledgeModel> filteredList = knowledgeList;
 
-    final filteredKnowledgeList = knowledgeList
+    // Filter by category
+    if (filterBy != 'all') {
+      filteredList = filteredList
+          .where((knowledge) => knowledge.category == filterBy)
+          .toList();
+    }
+
+    // Search by query
+    filteredList = filteredList
         .where((knowledge) =>
             knowledge.title.toLowerCase().contains(query.toLowerCase()) ||
-            knowledge.description.toLowerCase().contains(query.toLowerCase()) ||
-            knowledge.category.toLowerCase().contains(query.toLowerCase()))
+            knowledge.description.toLowerCase().contains(query.toLowerCase()))
         .toList();
 
-    if (category.isNotEmpty) {
-      filteredKnowledgeList.removeWhere((knowledge) =>
-          knowledge.category.toLowerCase() != category.toLowerCase());
+    // Sort by specified field
+    switch (sortBy) {
+      case 'title':
+        filteredList.sort((a, b) => a.title.compareTo(b.title));
+        break;
+      case 'category':
+        filteredList.sort((a, b) => a.category.compareTo(b.category));
+        break;
+      case 'createdAt':
+        filteredList.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        break;
     }
 
-    if (sortBy.isNotEmpty) {
-      switch (sortBy) {
-        case 'title':
-          filteredKnowledgeList.sort((a, b) => a.title.compareTo(b.title));
-          break;
-        case 'category':
-          filteredKnowledgeList.sort((a, b) => a.category.compareTo(b.category));
-          break;
-        case 'date':
-          filteredKnowledgeList.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-          break;
-      }
+    // Reverse sort if necessary
+    if (!sortByAscending) {
+      filteredList = filteredList.reversed.toList();
     }
 
-    return filteredKnowledgeList;
+    return filteredList;
+  }
+
+  static Future<List<KnowledgeModel>> getKnowledgeListFromDatabase(
+    KnowledgeService knowledgeService,
+  ) async {
+    try {
+      final knowledgeList = await knowledgeService.getKnowledgeList();
+      return knowledgeList;
+    } catch (e) {
+      print('Error fetching knowledge list: $e');
+      return [];
+    }
   }
 
   static List<String> getCategories(List<KnowledgeModel> knowledgeList) {
-    final categories = <String>[];
-    knowledgeList.forEach((knowledge) {
-      if (!categories.contains(knowledge.category)) {
-        categories.add(knowledge.category);
-      }
-    });
-    return categories;
+    final categories = <String>{};
+    knowledgeList.forEach((knowledge) => categories.add(knowledge.category));
+    return categories.toList();
   }
-
-  static List<String> getSortOptions() {
-    return ['title', 'category', 'date'];
-  }
-}
-
-class KnowledgeSearchFilter {
-  String query;
-  String category;
-  String sortBy;
-
-  KnowledgeSearchFilter({this.query = '', this.category = '', this.sortBy = ''});
 }
